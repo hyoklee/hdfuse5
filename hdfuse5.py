@@ -79,8 +79,8 @@ class HDFuse5(Operations):
 					pass
 
 		def makeIntoDir(self, statdict):
-			statdict["st_mode"] = statdict["st_mode"] ^ 0100000 | 0040000
-			for i in [ [ 0400 , 0100 ] , [ 040 , 010 ] , [ 04, 01 ] ]:
+			statdict["st_mode"] = statdict["st_mode"] ^ 0o0100000 | 0o0040000
+			for i in [ [ 0o0400 , 0o0100 ] , [ 0o040 , 0o010 ] , [ 0o04, 0o01 ] ]:
 				if (statdict["st_mode"] & i[0]) != 0:
 					statdict["st_mode"] = statdict["st_mode"] | i[1]
 			return statdict
@@ -210,7 +210,7 @@ class HDFuse5(Operations):
 
 if __name__ == "__main__":
 	if len(argv) != 3:
-		print 'usage: %s <root> <mountpoint>' % argv[0]
+		print('usage: %s <root> <mountpoint>' % argv[0])
 		exit(1)
 	#signal.signal(signal.SIGINT, signal.SIG_DFL)
 	#fuse = FUSE(HDFuse5(argv[1]), argv[2], foreground=True)

@@ -282,8 +282,11 @@ class FUSE(object):
         args.append(','.join(key if val == True else '%s=%s' % (key, val)
             for key, val in kwargs.items()))
         args.append(mountpoint)
-        argv = (c_char_p * len(args))(*args)
-        
+        # argv = (c_char_p * len(args))(*args)
+        argv = (c_char_p * len(args))()  # Create an array of c_char_p
+        for i, arg in enumerate(args):
+            argv[i] = arg.encode('utf-8')  # Encode each string to bytes
+        # argv = c_char_p_array
         fuse_ops = fuse_operations()
         for name, prototype in fuse_operations._fields_:
             if prototype != c_voidp and getattr(operations, name, None):
@@ -299,7 +302,7 @@ class FUSE(object):
         """Decorator for the methods that follow"""
         try:
             return func(*args, **kwargs) or 0
-        except OSError, e:
+        except (OSError, e):
             return -(e.errno or EFAULT)
         except:
             print_exc()
@@ -547,7 +550,7 @@ class Operations(object):
         
         if path != '/':
             raise FuseOSError(ENOENT)
-        return dict(st_mode=(S_IFDIR | 0755), st_nlink=2)
+        return dict(st_mode=(S_IFDIR | 0o0755), st_nlink=2)
     
     def getxattr(self, path, name, position=0):
         raise FuseOSError(ENOTSUP)
@@ -638,13 +641,13 @@ class Operations(object):
 
 class LoggingMixIn:
     def __call__(self, op, path, *args):
-        print '->', op, path, repr(args)
+        print('->', op, path, repr(args))
         ret = '[Unhandled Exception]'
         try:
             ret = getattr(self, op)(path, *args)
             return ret
-        except OSError, e:
+        except (OSError, e):
             ret = str(e)
             raise
         finally:
-            print '<-', op, repr(ret)
+            print('<-', op, repr(ret))
